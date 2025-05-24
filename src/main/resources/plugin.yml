@@ -5,9 +5,13 @@ api-version: '1.21'
 authors: [ Chromisek ]
 description: GUI plugin navazajici na ChromiumCore
 depend: [ChromiumCore]
-softdepend: [spark]
+softdepend: [spark, "PlaceholderAPI"]
+load: POSTWORLD
 commands:
   chromium:
     description: Hlavní příkaz pro ChromiumGUI.
     usage: /<command> [gui|reload|version|help]
-    aliases: [cgui, gui]
+  gui:
+    description: Otevře hlavní panel ChromiumGUI.
+    usage: /<command>
+    aliases: [cgui]

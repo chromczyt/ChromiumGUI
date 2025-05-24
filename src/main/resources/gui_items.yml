@@ -1,0 +1,136 @@
+# ==============================================
+# ChromiumGUI - Hlavní konfigurační soubor pro GUI
+# ==============================================
+#
+# DYNAMICKÉ PŘIDÁVÁNÍ POLOŽEK DO GUI:
+# Do této konfigurace můžeš přidat libovolnou novou sekci, například:
+#
+# spawn:
+#   enabled: true
+#   slot: 12
+#   material: "GRASS_BLOCK"
+#   name: "&aTPčko na spawn"
+#   lore:
+#     - "&7Klikni pro teleport na spawn"
+#   action:
+#     type: "COMMAND"
+#     value: "spawn"
+#
+# Po reloadu pluginu (/chromium reload) se položka automaticky objeví v GUI!
+# ==============================================
+
+gui-title: "§6§lChromium §7- §fHlavní Panel" # Konfigurovatelný název GUI
+
+items:
+  # ===== INFORMAČNÍ POLOŽKY =====
+  player-stats:
+    enabled: true
+    slot: 0 # Slot v inventáři (0-26 pro 3 řádky)
+    material: "PLAYER_HEAD" # Materiály z Bukkit Material enum
+    name: "&e&lPlayer Statistics" # Podporuje barevné kódy s &
+    lore:
+      - "&7Player Information:"
+      - "&f├ Name: &e%player_name%" # Podporuje PlaceholderAPI
+      - "&f├ Level: &a%player_level%"
+      - "&f├ Health: &c%player_health%&7/&c%player_max_health%"
+      - "&f├ Food: &6%player_food_level%&7/&620"
+      - "&f└ Gamemode: &d%player_gamemode%"
+      - ""
+      - "&7World: &f%player_world%"
+    glowing: false # Volitelné: jestli má item zářit
+    # custom-model-data: 1234 # Volitelně custom model data
+
+  server-stats:
+    enabled: true
+    slot: 8
+    material: "BEACON"
+    name: "&6&lServer Statistics"
+    lore:
+      - "&7Server Information:"
+      - "&f├ Players: &a%server_online%&7/&a%server_max_players%"
+      - "&f├ TPS: %spark_tps_1m_formatted%"
+      - "&f├ RAM: &b%server_ram_used%MB&7/&b%server_ram_max%MB"
+      - "&f└ Uptime: &d%server_uptime%"
+    glowing: true
+
+  # ===== AKČNÍ POLOŽKY =====
+  exit-button:
+    enabled: true
+    slot: 26
+    material: "BARRIER"
+    name: "&c&lExit"
+    lore:
+      - "&7Close this menu"
+      - ""
+      - "&cClick to exit"
+    action:
+      type: "EXIT" # Speciální typ akce pro zavření GUI
+      value: "" # Není potřeba žádná hodnota
+
+  cmi-config:
+    enabled: true
+    slot: 11
+    material: "GRASS_BLOCK"
+    name: "&cCMI Config"
+    lore:
+      - "&7Configure CMI plugin"
+      - ""
+      - "&eClick to open CMI options"
+    action:
+      type: "COMMAND" # Používáme COMMAND místo OPEN_GUI, protože jde o externí plugin
+      value: "cmi options"
+      executor: "PLAYER" # Explicitně nastaveno na PLAYER pro jasnost
+      delay: 2 # Přidáno pro budoucí použití, kolik ticků čekat před vykonáním
+
+#  spawn:
+#    enabled: true
+#    slot: 10
+#    material: "ENDER_PEARL"
+#    name: "&a&lSpawn"
+#    lore:
+#      - "&7Teleport to spawn"
+#      - ""
+#      - "&eClick to teleport"
+#    action:
+#      type: "COMMAND"
+#      value: "spawn"
+
+#  # Příklad pro otevření jiného GUI:
+#  custom-gui:
+#    enabled: true
+#    slot: 14
+#    material: "BOOK"
+#    name: "&b&lOtevřít jiné GUI"
+#    lore:
+#      - "&7Klikni pro otevření jiného GUI"
+#      - ""
+#      - "&eKlikni pro otevření"
+#    action:
+#      type: "OPEN_GUI" # Speciální typ pro otevření jiného GUI
+#      value: "custom" # Jméno GUI nebo příkaz pro otevření
+#
+#  # Příklad pro více příkazů:
+#  gamemode:
+#    enabled: true
+#    slot: 12
+#    material: "DIAMOND_PICKAXE"
+#    name: "&b&lCreative Mode"
+#    lore:
+#      - "&7Switch to creative mode"
+#      - "&7and get a welcome message"
+#    action:
+#      type: "COMMANDS" # Pro více příkazů
+#      values:
+#        - "gamemode creative"
+#        - "say %player_name% switched to creative mode!"
+#      executor: "CONSOLE" # Tyto příkazy budou spuštěny z konzole
+
+  # ===== VZHLED GUI =====
+  # Pozadí (filler item)
+  filler-item:
+    enabled: true
+    material: "GRAY_STAINED_GLASS_PANE"
+    name: " " # Prázdný název
+
+# Plugin version item je hardcoded v kódu a vždy se zobrazí na pozici 22
+

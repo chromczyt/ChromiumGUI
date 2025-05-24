@@ -58,6 +58,18 @@ public class ItemBuilder {
         return this;
     }
     
+                /**
+                 * Nastaví Custom Model Data pro ItemStack
+                 * @param customModelData Model data ID
+                 * @return Builder pro řetězení
+                 */
+                public ItemBuilder setCustomModelData(int customModelData) {
+                    if (itemMeta != null) {
+            itemMeta.setCustomModelData(customModelData);
+                    }
+                    return this;
+                }
+            
     public ItemBuilder setGlowing(boolean glowing) {
         if (glowing && itemMeta != null) {
             itemMeta.addEnchant(Enchantment.UNBREAKING, 1, true);

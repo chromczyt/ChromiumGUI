@@ -65,21 +65,36 @@ public class ChromiumCommand implements CommandExecutor, TabCompleter {
         plugin.getGUIManager().openMainGUI(player);
         player.sendMessage("§a§lChromium §7» §fOpening main panel...");
     }
-    
+
     private void reloadPlugin(Player player) {
         try {
             // Reload ChromiumCore config
-            ChromiumCore.getInstance().getGeneralConfig().reloadConfig();
-            
-            // Close all open GUIs
-            plugin.getGUIManager().closeAllGUIs();
-            
-            player.sendMessage("§a§lChromium §7» §fConfiguration reloaded successfully!");
+            if (ChromiumCore.getInstance() != null && ChromiumCore.getInstance().getGeneralConfig() != null) {
+                ChromiumCore.getInstance().getGeneralConfig().reloadConfig();
+                player.sendMessage("§a§lChromium §7» §fChromiumCore config reloaded.");
+            }
+
+            // Reload ChromiumGUI's gui_items.yml
+            if (plugin != null) { // 'plugin' je instance ChromiumGUI předaná do konstruktoru
+                plugin.loadGuiItemsConfig();
+                player.sendMessage("§a§lChromium §7» §fGUI items configuration reloaded.");
+            }
+
+            // Reload všech GUI - nyní používáme novou metodu, která plně aktualizuje GUI z konfigurace
+            if (plugin != null && plugin.getGUIManager() != null) {
+                // Použijeme naši novou metodu, která přímo aktualizuje otevřená GUI
+                plugin.getGUIManager().refreshAllGUIsCompletely();
+            }
+
+            player.sendMessage("§a§lChromium §7» §fPlugin reloaded successfully!");
             ChromiumCore.getInstance().getLogger().info("Configuration reloaded by " + player.getName());
-            
+
         } catch (Exception e) {
             player.sendMessage("§c§lChromium §7» §fError while reloading configuration!");
-            ChromiumCore.getInstance().getLogger().severe("Error reloading config: " + e.getMessage());
+            if (ChromiumCore.getInstance() != null && ChromiumCore.getInstance().getLogger() != null) {
+                ChromiumCore.getInstance().getLogger().severe("Error reloading config: " + e.getMessage());
+            }
+            e.printStackTrace(); // Pro detailní chybu v konzoli
         }
     }
     
