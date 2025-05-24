@@ -68,7 +68,7 @@ public class ChromiumCommand implements CommandExecutor, TabCompleter {
     private void reloadPlugin(Player player) {
         try {
             // Reload ChromiumCore config
-            ChromiumCore.getInstance().getConfigManager().reloadConfig();
+            ChromiumCore.getInstance().getGeneralConfig().reloadConfig();
             
             // Close all open GUIs
             plugin.getGUIManager().closeAllGUIs();

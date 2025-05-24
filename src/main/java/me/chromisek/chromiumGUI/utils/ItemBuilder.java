@@ -1,4 +1,4 @@
-package me.chromisek.chromiumGUI;
+package me.chromisek.chromiumGUI.utils;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;

@@ -1,5 +1,6 @@
-package me.chromisek.chromiumGUI;
+package me.chromisek.chromiumGUI.utils;
 
+import me.chromisek.chromiumGUI.ChromiumGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
