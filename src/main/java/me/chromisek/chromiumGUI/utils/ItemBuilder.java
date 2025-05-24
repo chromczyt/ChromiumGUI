@@ -60,7 +60,7 @@ public class ItemBuilder {
     
     public ItemBuilder setGlowing(boolean glowing) {
         if (glowing && itemMeta != null) {
-            itemMeta.addEnchant(Enchantment.DURABILITY, 1, true);
+            itemMeta.addEnchant(Enchantment.UNBREAKING, 1, true);
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
         return this;

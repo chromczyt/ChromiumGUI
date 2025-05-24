@@ -1,6 +1,7 @@
-package me.chromisek.chromiumGUI;
+package me.chromisek.chromiumGUI.listeners;
 
 import me.chromisek.chromiumCore.ChromiumCore;
+import me.chromisek.chromiumGUI.ChromiumGUI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -29,11 +30,14 @@ public class GUIListener implements Listener {
         
         // Cancel all clicks in our GUI
         event.setCancelled(true);
-        
+
         ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null || !clickedItem.hasItemMeta()) return;
-        
-        String itemName = clickedItem.getItemMeta().getDisplayName();
+        if (clickedItem == null) return; // Pokud není žádný item, nic nedělej
+
+        org.bukkit.inventory.meta.ItemMeta meta = clickedItem.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) return; // Pokud item nemá meta nebo nemá název, nic nedělej
+
+        String itemName = meta.getDisplayName();
         
         // Handle different button clicks
         switch (itemName) {

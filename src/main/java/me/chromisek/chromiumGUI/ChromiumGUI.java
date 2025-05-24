@@ -32,6 +32,14 @@ public final class ChromiumGUI extends JavaPlugin {
         // Register listeners
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
 
+        // Check for Spark plugin
+        if (getServer().getPluginManager().getPlugin("spark") != null) {
+            getLogger().info("Spark plugin detected! Will use for TPS monitoring.");
+        } else {
+            getLogger().warning("Spark plugin not found. For the best TPS monitoring, please install Spark.");
+            getLogger().info("Download Spark: https://www.spigotmc.org/resources/spark.57242/");
+        }
+
         // Start server stats task (refresh every 5 seconds)
         this.statsTask = new ServerStatsTask();
         this.statsTask.runTaskTimerAsynchronously(this, 0L, 100L); // 100 ticks = 5 seconds

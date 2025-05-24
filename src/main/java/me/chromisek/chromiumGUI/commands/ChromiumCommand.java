@@ -1,6 +1,7 @@
-package me.chromisek.chromiumGUI;
+package me.chromisek.chromiumGUI.commands;
 
 import me.chromisek.chromiumCore.ChromiumCore;
+import me.chromisek.chromiumGUI.ChromiumGUI;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

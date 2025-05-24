@@ -1,6 +1,7 @@
-package me.chromisek.chromiumGUI;
+package me.chromisek.chromiumGUI.gui;
 
 import me.chromisek.chromiumCore.ChromiumCore;
+import me.chromisek.chromiumGUI.ChromiumGUI;
 import me.chromisek.chromiumGUI.utils.ItemBuilder;
 import me.chromisek.chromiumGUI.utils.ServerStatsTask;
 import org.bukkit.Bukkit;
@@ -85,7 +86,7 @@ public class GUIManager {
         
         lore.add("§7Server Information:");
         lore.add("§f├ Players: §a" + Bukkit.getOnlinePlayers().size() + "§7/§a" + Bukkit.getMaxPlayers());
-        lore.add("§f├ TPS: §" + (statsTask.getTPS() >= 18 ? "a" : statsTask.getTPS() >= 15 ? "e" : "c") + 
+        lore.add("§f├ TPS: " + (statsTask.getTPS() >= 18 ? "§a" : statsTask.getTPS() >= 15 ? "§e" : "§c") +
                  String.format("%.2f", statsTask.getTPS()));
         lore.add("§f├ RAM: §b" + statsTask.getUsedMemoryMB() + "MB§7/§b" + statsTask.getMaxMemoryMB() + "MB");
         lore.add("§f└ Uptime: §d" + statsTask.getFormattedUptime());
