@@ -2,183 +2,145 @@ package me.chromisek.chromiumGUI.utils;
 
 import me.chromisek.chromiumGUI.ChromiumGUI;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.plugin.Plugin;
 
 public class ServerStatsTask extends BukkitRunnable {
-    
-    private double currentTPS;
+
+    private double currentTPS = -1.0; // Výchozí hodnota značící "nedostupné"
     private long usedMemory;
     private long maxMemory;
     private final long startTime;
-    private boolean sparkAvailable = false;
-    
+    private boolean sparkApiAvailable = false;
+    private Object sparkApiInstance = null;
+    private Class<?> sparkApiClass = null;
+
     public ServerStatsTask() {
         this.startTime = System.currentTimeMillis();
 
-        // Check if Spark plugin is available
         Plugin sparkPlugin = Bukkit.getPluginManager().getPlugin("spark");
-        sparkAvailable = (sparkPlugin != null && sparkPlugin.isEnabled());
-
-        if (sparkAvailable) {
-            ChromiumGUI.getInstance().getLogger().info("Spark plugin detected! Using Spark for TPS metrics.");
-        } else {
-            ChromiumGUI.getInstance().getLogger().warning("Spark plugin not found or not enabled. TPS metrics will be estimated.");
+        if (sparkPlugin != null && sparkPlugin.isEnabled()) {
+            try {
+                this.sparkApiClass = Class.forName("me.lucko.spark.api.Spark");
+                this.sparkApiInstance = Bukkit.getServicesManager().getRegistration(this.sparkApiClass).getProvider();
+                if (this.sparkApiInstance != null) {
+                    this.sparkApiAvailable = true;
+                    ChromiumGUI.getInstance().getLogger().info("Spark plugin detected! Using Spark for TPS metrics.");
+                } else {
+                    ChromiumGUI.getInstance().getLogger().warning("Spark plugin detected, but could not get Spark API provider from ServicesManager. TPS via Spark will not be available.");
+                }
+            } catch (ClassNotFoundException e) {
+                ChromiumGUI.getInstance().getLogger().warning("Spark API class (me.lucko.spark.api.Spark) not found. Spark TPS will not be used.");
+            } catch (NoClassDefFoundError e) {
+                ChromiumGUI.getInstance().getLogger().warning("Spark API class definition not found (NoClassDefFoundError). Spark TPS will not be used. Is Spark fully loaded and compatible?");
+            } catch (Exception e) {
+                ChromiumGUI.getInstance().getLogger().warning("An unexpected error occurred while initializing Spark API access: " + e.getMessage());
+            }
         }
-        
-        updateStats();
+
+        if (!this.sparkApiAvailable) {
+            ChromiumGUI.getInstance().getLogger().warning("Spark plugin not found or not enabled/initialized correctly. TPS metrics will not be available. Please install Spark for TPS monitoring: https://www.spigotmc.org/resources/spark.57242/");
+        }
+        updateStats(); // První aktualizace statistik
     }
-    
+
     @Override
     public void run() {
         updateStats();
-
         Bukkit.getScheduler().runTask(ChromiumGUI.getInstance(), () -> {
-            ChromiumGUI.getInstance().getGUIManager().refreshAllGUIs();
+            if (ChromiumGUI.getInstance() != null && ChromiumGUI.getInstance().getGUIManager() != null) {
+                ChromiumGUI.getInstance().getGUIManager().refreshAllGUIs();
+            }
         });
     }
-    
+
     private void updateStats() {
-        // Get TPS information
-        try {
-            if (sparkAvailable) {
-                // Get TPS from Spark plugin
-                this.currentTPS = getSparkTPS();
-            } else {
-                // Fallback - try using server's native methods
-                this.currentTPS = getNativeTPS();
-            }
-        } catch (Exception e) {
-            // Fallback if any method fails
-            ChromiumGUI.getInstance().getLogger().warning("Failed to get TPS: " + e.getMessage());
-            this.currentTPS = 20.0;
+        if (sparkApiAvailable && sparkApiInstance != null) {
+            this.currentTPS = getSparkTPSValue();
+        } else {
+            this.currentTPS = -1.0; // Indikuje, že TPS není dostupné bez Sparku
         }
-        
+
         // Memory statistics
         Runtime runtime = Runtime.getRuntime();
         this.maxMemory = runtime.maxMemory();
         this.usedMemory = runtime.totalMemory() - runtime.freeMemory();
     }
-    
-    /**
-     * Gets TPS from native server methods (Paper or Spigot)
-     * @return The current TPS value (1-minute average)
-     */
-    private double getNativeTPS() {
+
+    private double getSparkTPSValue() {
         try {
-            // Try Paper's method first
+            // Možnost 1: Získat TPS přímo z objektu Tps (např. 1-minutový průměr)
             try {
-                return Math.min(20.0, Bukkit.getServer().getTPS()[0]);
-            } catch (Exception e) {
-                // Try Spigot's method
-                try {
-                    Object server = Bukkit.getServer();
-                    Object spigotServer = server.getClass().getMethod("spigot").invoke(server);
-                    double[] tps = (double[]) spigotServer.getClass().getMethod("getTPS").invoke(spigotServer);
-                    return Math.min(20.0, tps[0]);
-                } catch (Exception ex) {
-                    ChromiumGUI.getInstance().getLogger().warning("Failed to get native TPS: " + ex.getMessage());
-                    return 20.0;
+                Object tpsDataObject = this.sparkApiClass.getMethod("tps").invoke(this.sparkApiInstance);
+                if (tpsDataObject != null) {
+                    double tpsAverage = (double) tpsDataObject.getClass().getMethod("oneMinuteAverage").invoke(tpsDataObject);
+                    return Math.min(20.0, Math.max(0.0, tpsAverage)); // Ochrana pro validní rozsah
                 }
+            } catch (NoSuchMethodException nsme) {
+                ChromiumGUI.getInstance().getLogger().info("Spark: tps().oneMinuteAverage() not available, trying MSPT method for TPS.");
+            } catch (Exception e) {
+                ChromiumGUI.getInstance().getLogger().warning("Error getting TPS averages from Spark: " + e.getMessage() + ". Trying MSPT for TPS.");
             }
+
+            // Možnost 2: Vypočítat TPS z MSPT
+            Object msptStatisticObject = this.sparkApiClass.getMethod("mspt").invoke(this.sparkApiInstance);
+            if (msptStatisticObject == null) {
+                ChromiumGUI.getInstance().getLogger().warning("Spark MSPT statistic not available.");
+                return -1.0;
+            }
+
+            Class<?> statisticWindowInterface = Class.forName("me.lucko.spark.api.statistic.StatisticWindow");
+            Class<?> msptWindowEnumClass = Class.forName("me.lucko.spark.api.statistic.StatisticWindow$MillisPerTick");
+            Object minutes1WindowConstant = msptWindowEnumClass.getField("MINUTES_1").get(null);
+
+            Object aggregateDataObject = msptStatisticObject.getClass().getMethod("poll", statisticWindowInterface).invoke(msptStatisticObject, minutes1WindowConstant);
+            if (aggregateDataObject == null) {
+                ChromiumGUI.getInstance().getLogger().warning("Could not poll MSPT data from Spark.");
+                return -1.0;
+            }
+
+            double meanMspt = (double) aggregateDataObject.getClass().getMethod("mean").invoke(aggregateDataObject);
+
+            if (meanMspt <= 0) {
+                return 20.0; // Pokud je MSPT neplatné, raději ukažme plné TPS než chybu
+            }
+            return Math.min(20.0, Math.max(0.0, 1000.0 / meanMspt)); // Ochrana pro validní rozsah
+
         } catch (Exception e) {
-            ChromiumGUI.getInstance().getLogger().warning("Failed to get native TPS: " + e.getMessage());
-            return 20.0;
+            ChromiumGUI.getInstance().getLogger().warning("Failed to get TPS from Spark via reflection: " + e.getMessage());
+            // e.printStackTrace(); // Pro detailní ladění můžeš dočasně odkomentovat
+            return -1.0; // Selhalo získání TPS ze Sparku
         }
     }
 
     /**
-     * Gets TPS from Spark plugin using reflection
-     * @return The current TPS value (1-minute average)
+     * Vrací aktuální TPS. Pokud je hodnota -1.0, TPS není dostupné (např. chybí Spark).
+     * @return Aktuální TPS nebo -1.0 pokud není dostupné.
      */
-    private double getSparkTPS() {
-        try {
-            // Use reflection to access Spark API without hard dependency
-            Class<?> sparkClass = Class.forName("me.lucko.spark.api.Spark");
-
-            // Get the Spark service from Bukkit services manager
-            Object sparkApi = Bukkit.getServicesManager().getRegistration(sparkClass).getProvider();
-
-            // Check if we got a valid API object
-            if (sparkApi == null) {
-                ChromiumGUI.getInstance().getLogger().warning("Could not get Spark API from ServicesManager");
-                return getNativeTPS();
-            }
-
-            // First try to get TPS directly if available
-            try {
-                // Some versions have direct TPS method
-                Object tpsData = sparkClass.getMethod("tps").invoke(sparkApi);
-                if (tpsData != null) {
-                    // Get the mean value from tpsData
-                    double tpsMean = (double) tpsData.getClass().getMethod("mean").invoke(tpsData);
-                    return Math.min(20.0, tpsMean);
-                }
-            } catch (Exception e) {
-                // TPS method not available, try MSPT method
-            }
-
-            // Use MSPT to calculate TPS
-            // Get the statistic window class
-            Class<?> statisticWindowClass = Class.forName("me.lucko.spark.api.statistic.StatisticWindow$MillisPerTick");
-
-            // Get the MSPT method
-            Object msptStat = sparkClass.getMethod("mspt").invoke(sparkApi);
-            if (msptStat == null) {
-                ChromiumGUI.getInstance().getLogger().warning("Spark MSPT statistic not available");
-                return getNativeTPS();
-            }
-
-            // Get the minutes constant for polling (MINUTES_1)
-            Object minutesWindow = statisticWindowClass.getField("MINUTES_1").get(null);
-
-            // Poll the statistic
-            Object msptInfo = msptStat.getClass().getMethod("poll", Class.forName("me.lucko.spark.api.statistic.StatisticWindow")).invoke(msptStat, minutesWindow);
-
-            if (msptInfo == null) {
-                ChromiumGUI.getInstance().getLogger().warning("Could not poll MSPT data from Spark");
-                return getNativeTPS();
-            }
-
-            // Get the mean value
-            double msptMean = (double) msptInfo.getClass().getMethod("mean").invoke(msptInfo);
-
-            // Convert MSPT to TPS (MSPT = Milliseconds Per Tick)
-            // TPS = 1000 / MSPT (capped at 20)
-            return Math.min(20.0, 1000.0 / Math.max(msptMean, 50.0));
-
-        } catch (Exception e) {
-            ChromiumGUI.getInstance().getLogger().warning("Failed to get TPS from Spark: " + e.getMessage());
-            return getNativeTPS(); // Fall back to native methods
-        }
-    }
-    
     public double getTPS() {
         return currentTPS;
     }
-    
+
+    // ... zbytek metod (getUsedMemoryMB, atd.) ...
     public long getUsedMemoryMB() {
         return usedMemory / 1024 / 1024;
     }
-    
+
     public long getMaxMemoryMB() {
         return maxMemory / 1024 / 1024;
     }
-    
+
     public long getUptimeSeconds() {
         return (System.currentTimeMillis() - startTime) / 1000;
     }
-    
+
     public String getFormattedUptime() {
         long totalSeconds = getUptimeSeconds();
-        
         long days = totalSeconds / 86400;
         long hours = (totalSeconds % 86400) / 3600;
         long minutes = (totalSeconds % 3600) / 60;
         long seconds = totalSeconds % 60;
-        
+
         if (days > 0) {
             return String.format("%dd %dh %dm", days, hours, minutes);
         } else if (hours > 0) {
@@ -189,11 +151,11 @@ public class ServerStatsTask extends BukkitRunnable {
             return String.format("%ds", seconds);
         }
     }
-    
+
     public double getMemoryUsagePercent() {
         return ((double) usedMemory / maxMemory) * 100.0;
     }
-    
+
     public String getMemoryUsageFormatted() {
         return String.format("%.1f%%", getMemoryUsagePercent());
     }

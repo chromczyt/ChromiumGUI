@@ -49,7 +49,7 @@ public class GUIManager {
         gui.setItem(0, createPlayerStatsItem(player));
         
         // Server Statistics (Top Right - Slot 2)  
-        gui.setItem(2, createServerStatsItem());
+        gui.setItem(8, createServerStatsItem());
         
         // Plugin Version (Bottom Left - Slot 18)
         gui.setItem(18, createPluginVersionItem());
@@ -82,11 +82,20 @@ public class GUIManager {
     
     private ItemStack createServerStatsItem() {
         ServerStatsTask statsTask = plugin.getStatsTask();
+        double currentTpsValue = statsTask.getTPS();
+        String tpsDisplay;
+
+        if (currentTpsValue >= -1) {
+            tpsDisplay = "§cN/A (Spark not found)";
+        } else {
+            tpsDisplay = (currentTpsValue >= 18 ? "§a" : currentTpsValue >= 15 ? "§e" : "§c") +
+                    String.format("%.2f", currentTpsValue);
+        }
         List<String> lore = new ArrayList<>();
         
         lore.add("§7Server Information:");
         lore.add("§f├ Players: §a" + Bukkit.getOnlinePlayers().size() + "§7/§a" + Bukkit.getMaxPlayers());
-        lore.add("§f├ TPS: " + (statsTask.getTPS() >= 18 ? "§a" : statsTask.getTPS() >= 15 ? "§e" : "§c") +
+        lore.add("§f├ TPS: §" + (statsTask.getTPS() >= 18 ? "a" : statsTask.getTPS() >= 15 ? "e" : "c") +
                  String.format("%.2f", statsTask.getTPS()));
         lore.add("§f├ RAM: §b" + statsTask.getUsedMemoryMB() + "MB§7/§b" + statsTask.getMaxMemoryMB() + "MB");
         lore.add("§f└ Uptime: §d" + statsTask.getFormattedUptime());
