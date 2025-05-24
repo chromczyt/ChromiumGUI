@@ -1,0 +1,6 @@
+name: ChromiumGUI
+version: '1.0-SNAPSHOT'
+main: me.chromisek.chromiumGUI.ChromiumGUI
+api-version: '1.21'
+authors: [ Chromisek ]
+description: GUI plugin navazajici na ChromiumCore
