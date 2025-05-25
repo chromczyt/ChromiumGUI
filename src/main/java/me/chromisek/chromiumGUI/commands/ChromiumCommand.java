@@ -80,9 +80,7 @@ public class ChromiumCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage("§a§lChromium §7» §fGUI items configuration reloaded.");
             }
 
-            // Reload všech GUI - nyní používáme novou metodu, která plně aktualizuje GUI z konfigurace
             if (plugin != null && plugin.getGUIManager() != null) {
-                // Použijeme naši novou metodu, která přímo aktualizuje otevřená GUI
                 plugin.getGUIManager().refreshAllGUIsCompletely();
             }
 
@@ -94,7 +92,7 @@ public class ChromiumCommand implements CommandExecutor, TabCompleter {
             if (ChromiumCore.getInstance() != null && ChromiumCore.getInstance().getLogger() != null) {
                 ChromiumCore.getInstance().getLogger().severe("Error reloading config: " + e.getMessage());
             }
-            e.printStackTrace(); // Pro detailní chybu v konzoli
+            e.printStackTrace();
         }
     }
     

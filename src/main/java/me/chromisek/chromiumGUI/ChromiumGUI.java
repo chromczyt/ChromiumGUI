@@ -2,21 +2,21 @@ package me.chromisek.chromiumGUI;
 
 import me.chromisek.chromiumCore.ChromiumCore;
 import me.chromisek.chromiumGUI.commands.ChromiumCommand;
-import me.chromisek.chromiumGUI.commands.DirectGuiCommand; // Přidáno, pokud používáš
+import me.chromisek.chromiumGUI.commands.DirectGuiCommand;
 import me.chromisek.chromiumGUI.gui.GUIManager;
 import me.chromisek.chromiumGUI.listeners.GUIListener;
 import me.chromisek.chromiumGUI.utils.ServerStatsTask;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.configuration.file.FileConfiguration; // Pro načítání konfigurace
-import java.io.File; // Pro práci se soubory
+import org.bukkit.configuration.file.FileConfiguration;
+import java.io.File;
 
 public final class ChromiumGUI extends JavaPlugin {
 
     private static ChromiumGUI instance;
     private GUIManager guiManager;
     private ServerStatsTask statsTask;
-    private boolean placeholderApiAvailable = false; // Přesunuto jako proměnná instance
-    private FileConfiguration guiItemsConfig; // Proměnná pro naši novou konfiguraci
+    private boolean placeholderApiAvailable = false;
+    private FileConfiguration guiItemsConfig;
 
     @Override
     public void onEnable() {
@@ -31,7 +31,7 @@ public final class ChromiumGUI extends JavaPlugin {
             getLogger().info("Download PlaceholderAPI: https://www.spigotmc.org/resources/placeholderapi.6245/");
         }
 
-        // Načtení konfigurace pro GUI itemy
+        // Load gui_items.yml
         loadGuiItemsConfig();
 
         // Check if ChromiumCore is loaded
@@ -40,8 +40,7 @@ public final class ChromiumGUI extends JavaPlugin {
             return;
         }
 
-        // Initialize managers
-        // Předáme i konfiguraci a informaci o PAPI do GUIManageru
+
         this.guiManager = new GUIManager(this, this.guiItemsConfig, this.placeholderApiAvailable);
 
         // Register commands
@@ -53,8 +52,7 @@ public final class ChromiumGUI extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
 
         // Start server stats task (refresh every 5 seconds)
-        // Tento task bude nyní primárně pro refresh GUI, statistiky potáhneme z PAPI
-        this.statsTask = new ServerStatsTask(); // ServerStatsTask už nebude řešit Spark/nativní TPS
+        this.statsTask = new ServerStatsTask();
         this.statsTask.runTaskTimerAsynchronously(this, 0L, 100L);
 
         ChromiumCore.getInstance().getLogger().info("ChromiumGUI plugin enabled successfully!");
@@ -76,13 +74,12 @@ public final class ChromiumGUI extends JavaPlugin {
     public void loadGuiItemsConfig() {
         File configFile = new File(getDataFolder(), "gui_items.yml");
         if (!configFile.exists()) {
-            saveResource("gui_items.yml", false); // Uloží výchozí gui_items.yml z JARu
+            saveResource("gui_items.yml", false);
         }
-        // Použijeme standardní YamlConfiguration pro jednoduchost,
-        // nebo můžeš použít tvůj ChromiumConfig, pokud ho máš upravený pro více souborů
+
         this.guiItemsConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(configFile);
         
-        // Pokud je GUI Manager už inicializován, předáme mu nově načtenou konfiguraci
+
         if (this.guiManager != null) {
             this.guiManager.updateConfiguration(this.guiItemsConfig);
             this.guiManager.refreshAllGUIsCompletely();
@@ -92,7 +89,6 @@ public final class ChromiumGUI extends JavaPlugin {
     }
 
     private boolean checkDependencies() {
-        // ... (tvoje stávající metoda) ...
         if (getServer().getPluginManager().getPlugin("ChromiumCore") == null) {
             getLogger().severe("ChromiumCore plugin not found! ChromiumGUI requires ChromiumCore to function.");
             return false;
@@ -113,15 +109,15 @@ public final class ChromiumGUI extends JavaPlugin {
         return guiManager;
     }
 
-    public ServerStatsTask getStatsTask() { // Tento getter můžeš nechat, i když role tasku se mění
+    public ServerStatsTask getStatsTask() { //no usages?? why? well i think i will use this in future so i kept it (it basicly do nothing :) )
         return statsTask;
     }
 
-    public boolean isPlaceholderApiAvailable() { // Getter pro PAPI status
+    public boolean isPlaceholderApiAvailable() {
         return this.placeholderApiAvailable;
     }
 
-    public FileConfiguration getGuiItemsConfig() { // Getter pro konfiguraci itemů
+    public FileConfiguration getGuiItemsConfig() {
         return this.guiItemsConfig;
     }
 }

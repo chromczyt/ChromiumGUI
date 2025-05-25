@@ -58,11 +58,7 @@ public class ItemBuilder {
         return this;
     }
     
-                /**
-                 * Nastaví Custom Model Data pro ItemStack
-                 * @param customModelData Model data ID
-                 * @return Builder pro řetězení
-                 */
+
                 public ItemBuilder setCustomModelData(int customModelData) {
                     if (itemMeta != null) {
             itemMeta.setCustomModelData(customModelData);
