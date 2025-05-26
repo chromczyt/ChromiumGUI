@@ -1,7 +1,6 @@
 package me.chromisek.chromiumGUI;
 
 import me.chromisek.chromiumCore.ChromiumCore;
-import me.chromisek.chromiumGUI.commands.ChromiumCommand;
 import me.chromisek.chromiumGUI.commands.DirectGuiCommand;
 import me.chromisek.chromiumGUI.gui.GUIManager;
 import me.chromisek.chromiumGUI.listeners.GUIListener;
@@ -43,10 +42,8 @@ public final class ChromiumGUI extends JavaPlugin {
 
         this.guiManager = new GUIManager(this, this.guiItemsConfig, this.placeholderApiAvailable);
 
-        // Register commands
-        getCommand("chromium").setExecutor(new ChromiumCommand(this));
+        // Register GUI command
         getCommand("gui").setExecutor(new DirectGuiCommand(this));
-
 
         // Register listeners
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);

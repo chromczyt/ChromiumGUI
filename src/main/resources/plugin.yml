@@ -8,9 +8,6 @@ depend: [ChromiumCore]
 softdepend: [spark, "PlaceholderAPI"]
 load: POSTWORLD
 commands:
-  chromium:
-    description: Hlavní příkaz pro ChromiumGUI.
-    usage: /<command> [gui|reload|version|help]
   gui:
     description: Otevře hlavní panel ChromiumGUI.
     usage: /<command>
